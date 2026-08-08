@@ -1224,7 +1224,7 @@
     // 這個頁面本身當作 OAuth 的 callback 頁；LINE 登入完會帶著 ?code=...&state=... 導回這裡。
     redirectUri: window.location.origin + window.location.pathname,
     // ← 換成你部署後端後的網址（見 line-backend/README.md），結尾不要加斜線。
-    backendBaseUrl: "https://YOUR-BACKEND-DOMAIN.example.com",
+    backendBaseUrl: "https://chipao-jiaobei-backend.onrender.com",
     scope: "profile openid",
   };
 
