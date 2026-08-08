@@ -815,6 +815,18 @@
   }
   updateCamera();
 
+  // 用鏡頭偏移（不是移動攝影機或杯子座標）把整個畫面內容往上推，
+  // 讓主要畫面落在畫面偏上方，而不是貼近底部。VERTICAL_SHIFT_RATIO
+  // 越大，畫面內容往上移動越多，需要的話可以直接調這個數字微調。
+  const VERTICAL_SHIFT_RATIO = 0.32;
+  function applyCameraShift(){
+    const { w, h } = getAppSize();
+    const extra = h * VERTICAL_SHIFT_RATIO;
+    camera.setViewOffset(w, h + extra, 0, extra, w, h);
+    camera.updateProjectionMatrix();
+  }
+  applyCameraShift();
+
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
   { const {w,h} = getAppSize(); renderer.setSize(w,h); }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -840,7 +852,7 @@
   window.addEventListener("resize", ()=>{
     const {w,h} = getAppSize();
     camera.aspect = w/h;
-    camera.updateProjectionMatrix();
+    applyCameraShift();
     renderer.setSize(w,h);
     updatePlayFramePosition();
   });
@@ -860,12 +872,12 @@
 
   function showRestingCups(){
     clearCups();
-    // 兩杯都完全平放在布面上（只有繞垂直軸的角度差異，沒有立起來的傾斜），
-    // 位置集中在畫面中央、間距適中，角度留一點點隨機讓它看起來像剛落地翻滾停下來，
-    // 而不是刻意擺拍的展示姿勢。
+    // 兩杯都完全平放（只繞垂直軸旋轉，不立起、不側翻），弧面朝上、平面朝下。
+    // 左杯呈左上→右下斜向，右杯呈左下→右上斜向，兩杯錯開交叉、不對稱，
+    // 不是鏡射對稱的擺拍姿勢；固定角度（不隨機），確保每次呈現都穩定一致。
     const layout = [
-      { x:-0.052 + (Math.random()-0.5)*0.012, z: 0.028 + (Math.random()-0.5)*0.012, yaw: 0.35 + (Math.random()-0.5)*0.3 },
-      { x: 0.058 + (Math.random()-0.5)*0.012, z: 0.045 + (Math.random()-0.5)*0.012, yaw:-0.5  + (Math.random()-0.5)*0.3 },
+      { x:-0.032, z:0.03, yaw: Math.PI/2 + 0.15 },   // 左杯：面朝右，弧面朝外
+      { x: 0.032, z:0.03, yaw:-(Math.PI/2 + 0.15) }, // 右杯：鏡射對稱，面朝左，弧面朝外
     ];
     for (let i=0;i<2;i++){
       const mesh = createJiaoCupMesh();
