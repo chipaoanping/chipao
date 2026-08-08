@@ -298,6 +298,83 @@
     </div>
   </div>
 
+  <button id="adminEntryBtn" style="display:none;position:fixed;bottom:10px;left:10px;z-index:80;width:30px;height:30px;border-radius:50%;border:1px solid rgba(212,160,23,.4);background:rgba(20,10,4,.7);color:#d4a017;font-size:13px;">🔧</button>
+
+  <div class="overlay" id="adminOverlay">
+    <div class="card" style="max-width:420px;">
+      <div class="icon">🔧</div>
+      <h2>後台：手動發放機會</h2>
+      <div id="adminLoginView">
+        <p style="font-size:12px;color:#a98254;margin:0 0 14px;">請輸入管理密碼</p>
+        <input id="adminPasswordInput" type="password" inputmode="numeric" placeholder="請輸入密碼" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:16px;text-align:center;letter-spacing:.2em;margin-bottom:10px;box-sizing:border-box;">
+        <div id="adminLoginError" style="color:#a22922;font-size:12px;min-height:16px;margin-bottom:8px;"></div>
+        <button class="confirm-btn" id="adminLoginSubmit">登入後台</button>
+      </div>
+      <div id="adminPanelView" style="display:none;">
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="admin-tab-btn" data-tab="users" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">顧客列表</button>
+          <button class="admin-tab-btn" data-tab="broadcast" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">全員發放</button>
+          <button class="admin-tab-btn" data-tab="holidays" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">特殊節日</button>
+          <button class="admin-tab-btn" data-tab="rewards" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">獎項設定</button>
+        </div>
+
+        <div id="adminTabUsers" class="admin-tab-panel">
+          <input id="adminSearchInput" type="text" placeholder="搜尋顧客名稱" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:14px;margin-bottom:10px;box-sizing:border-box;">
+          <div id="adminUserList" style="text-align:left;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:6px;"></div>
+        </div>
+
+        <div id="adminTabBroadcast" class="admin-tab-panel" style="display:none;">
+          <p style="font-size:12px;color:#a98254;margin:0 0 12px;text-align:left;">一次發放給「目前所有已綁定過 LINE 的顧客」，適合活動加碼、全員贈送。</p>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+            <span style="font-size:13px;color:#5d4037;">每人發放</span>
+            <input id="broadcastAmountInput" type="number" value="1" min="1" style="width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:14px;text-align:center;">
+            <span style="font-size:13px;color:#5d4037;">次機會</span>
+          </div>
+          <button class="confirm-btn" id="broadcastSubmit">發放給所有人</button>
+          <div id="broadcastResult" style="font-size:12px;color:#5d4037;margin-top:10px;"></div>
+        </div>
+
+        <div id="adminTabHolidays" class="admin-tab-panel" style="display:none;">
+          <p style="font-size:12px;color:#a98254;margin:0 0 12px;text-align:left;">設定好之後，每年到這天顧客登入時會自動加贈機會，不用每年手動操作。</p>
+          <div id="holidayList" style="text-align:left;display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;margin-bottom:12px;"></div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <input id="holidayMonthInput" type="number" placeholder="月" min="1" max="12" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;text-align:center;">
+            <input id="holidayDayInput" type="number" placeholder="日" min="1" max="31" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;text-align:center;">
+            <input id="holidayBonusInput" type="number" placeholder="次數" min="1" value="1" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;text-align:center;">
+          </div>
+          <input id="holidayLabelInput" type="text" placeholder="節日名稱（例如：週年慶）" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+          <button class="confirm-btn" id="holidayAddSubmit">新增節日</button>
+        </div>
+
+        <div id="adminTabRewards" class="admin-tab-panel" style="display:none;text-align:left;">
+          <div style="font-size:12.5px;font-weight:700;color:#8a5a2b;margin-bottom:6px;">🎉 大獎（連續聖杯）</div>
+          <input id="grandTextInput" type="text" placeholder="大獎內容" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;margin-bottom:6px;box-sizing:border-box;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+            <span style="font-size:12px;color:#5d4037;">連續</span>
+            <input id="grandStreakInput" type="number" min="1" max="3" style="width:60px;padding:6px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;text-align:center;">
+            <span style="font-size:12px;color:#5d4037;">次聖杯觸發（每輪固定 3 次擲筊，最多填 3）</span>
+          </div>
+
+          <div style="font-size:12.5px;font-weight:700;color:#8a5a2b;margin-bottom:6px;">✨ 特別獎（累積笑杯）</div>
+          <input id="specialTextInput" type="text" placeholder="特別獎內容" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;margin-bottom:6px;box-sizing:border-box;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+            <span style="font-size:12px;color:#5d4037;">累積</span>
+            <input id="specialCountInput" type="number" min="1" max="3" style="width:60px;padding:6px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:13px;text-align:center;">
+            <span style="font-size:12px;color:#5d4037;">次笑杯觸發（最多填 3）</span>
+          </div>
+
+          <div style="font-size:12.5px;font-weight:700;color:#8a5a2b;margin-bottom:6px;">🎁 安慰獎（未中大獎/特別獎時，依權重抽一個）</div>
+          <div id="consolationList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+          <button id="consolationAddRow" style="width:100%;padding:8px;border-radius:8px;border:1px dashed rgba(212,160,23,.5);background:none;color:#8a5a2b;font-size:12px;cursor:pointer;margin-bottom:14px;">+ 新增安慰獎項目</button>
+
+          <div id="rewardsConfigError" style="color:#a22922;font-size:12px;min-height:16px;margin-bottom:6px;"></div>
+          <button class="confirm-btn" id="rewardsConfigSave">儲存獎項設定</button>
+        </div>
+      </div>
+      <button id="adminClose" style="width:100%;margin-top:4px;padding:10px;border:none;background:none;color:#a98254;font-size:12.5px;cursor:pointer;">關閉</button>
+    </div>
+  </div>
+
   <div class="overlay" id="birthdayOverlay">
     <div class="card">
       <div class="icon">🎂</div>
@@ -321,7 +398,7 @@
   // 開發/測試用開關：先關掉「一定要 LINE 登入 + 消耗機會才能玩」的限制，
   // 改成不限次數可以一直擲筊。之後要恢復限制，把這裡改回 false 就好，
   // 其他程式碼都不用動。
-  const UNLIMITED_PLAY = true;
+  const UNLIMITED_PLAY = false;
 
   /* ============================================================
    * 1. 筊杯視覺模型（沿用原專案 3D 雕刻建模邏輯）
@@ -956,18 +1033,26 @@
   }
   const updateStatusUI = refreshPlayGateUI; // 沿用舊名稱，其餘呼叫點不用改
 
-  function getWeightedConsolationReward(){
-    const rewards = [
+  // 獎項設定：先用跟原本一樣的預設值，避免後端還沒連上時遊戲不能玩；
+  // 頁面載入後會嘗試從後端抓最新設定蓋過去（後台改過的話這裡就會生效）。
+  let rewardsConfig = {
+    grand: { text:"旗袍日租體驗雙人同行一人免費", streak:3 },
+    special: { text:"來店體驗送一張拍立得", count:3 },
+    consolation: [
       { text:"旗袍日租體驗九折優惠", weight:40 },
       { text:"旗袍日租體驗八折優惠", weight:40 },
       { text:"彩妝加購九折", weight:15 },
       { text:"來店送小禮", weight:15 },
       { text:"免費繡花鞋租借", weight:15 },
-    ];
+    ],
+  };
+
+  function getWeightedConsolationReward(){
+    const rewards = rewardsConfig.consolation;
     const total = rewards.reduce((s,r)=>s+r.weight,0);
     let rnd = Math.random()*total;
     for (const r of rewards){ if (rnd<r.weight) return r.text; rnd -= r.weight; }
-    return rewards[1].text;
+    return rewards[0].text;
   }
 
   function resetGame(){ roundCount=0; shengCount=0; xiaoCount=0; refreshPlayGateUI(); }
@@ -992,10 +1077,10 @@
     refreshPlayGateUI();
 
     setTimeout(()=>{
-      if (shengCount===3){
-        saveReward("旗袍日租體驗雙人同行一人免費", "grand");
-      } else if (xiaoCount===3){
-        saveReward("來店體驗送一張拍立得", "special");
+      if (shengCount===rewardsConfig.grand.streak){
+        saveReward(rewardsConfig.grand.text, "grand");
+      } else if (xiaoCount===rewardsConfig.special.count){
+        saveReward(rewardsConfig.special.text, "special");
         xiaoCount = 0;
       } else if (finishedRound){
         saveReward(getWeightedConsolationReward(), "consolation");
@@ -1055,8 +1140,8 @@
 
   function openRewardDialog(type, text){
     const meta = {
-      grand:   { icon:"🎉", title:"天降大喜：連續三聖杯！" },
-      special: { icon:"✨", title:"誠心感應：三笑杯！" },
+      grand:   { icon:"🎉", title:`天降大喜：連續${rewardsConfig.grand.streak}聖杯！` },
+      special: { icon:"✨", title:`誠心感應：${rewardsConfig.special.count}笑杯！` },
       consolation: { icon:"🎁", title:"誠心祈願：獲得小禮" },
     }[type];
     rewardIcon.textContent = meta.icon;
@@ -1150,6 +1235,300 @@
   const rulesClose = document.getElementById("rulesClose");
   rulesBtn.addEventListener("click", ()=> rulesOverlay.classList.add("open"));
   rulesClose.addEventListener("click", ()=> rulesOverlay.classList.remove("open"));
+
+  /* 後台：手動發放機會（網址加 ?admin=1 才會顯示入口按鈕，一般顧客看不到） */
+  const adminEntryBtn = document.getElementById("adminEntryBtn");
+  const adminOverlay = document.getElementById("adminOverlay");
+  const adminLoginView = document.getElementById("adminLoginView");
+  const adminPanelView = document.getElementById("adminPanelView");
+  const adminPasswordInput = document.getElementById("adminPasswordInput");
+  const adminLoginError = document.getElementById("adminLoginError");
+  const adminLoginSubmit = document.getElementById("adminLoginSubmit");
+  const adminSearchInput = document.getElementById("adminSearchInput");
+  const adminUserList = document.getElementById("adminUserList");
+  const adminClose = document.getElementById("adminClose");
+
+  let adminPassword = null;
+  let adminUsers = [];
+
+  if (new URLSearchParams(window.location.search).get("admin")){
+    adminEntryBtn.style.display = "flex";
+    adminEntryBtn.style.alignItems = "center";
+    adminEntryBtn.style.justifyContent = "center";
+  }
+
+  adminEntryBtn.addEventListener("click", ()=>{
+    adminOverlay.classList.add("open");
+    adminLoginView.style.display = "";
+    adminPanelView.style.display = "none";
+    adminPasswordInput.value = "";
+    adminLoginError.textContent = "";
+  });
+  adminClose.addEventListener("click", ()=> adminOverlay.classList.remove("open"));
+
+  function renderAdminUserList(filter){
+    const kw = (filter||"").trim().toLowerCase();
+    const filtered = kw ? adminUsers.filter(u => (u.displayName||"").toLowerCase().includes(kw)) : adminUsers;
+    if (!filtered.length){
+      adminUserList.innerHTML = `<p style="color:#a98254;font-size:12.5px;text-align:center;">找不到符合的顧客</p>`;
+      return;
+    }
+    adminUserList.innerHTML = filtered.map(u => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#fff;border:1px solid rgba(212,160,23,.2);border-radius:8px;">
+        <div style="min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:#5d4037;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.displayName || "(未命名)"}</div>
+          <div style="font-size:11px;color:#a98254;">目前機會：<span data-chances="${u.lineUserId}">${u.chances}</span></div>
+        </div>
+        <div style="display:flex;gap:4px;flex:0 0 auto;">
+          <button data-grant="${u.lineUserId}" data-amount="1" style="padding:6px 10px;border-radius:6px;border:1px solid rgba(212,160,23,.4);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">+1</button>
+          <button data-grant="${u.lineUserId}" data-amount="3" style="padding:6px 10px;border-radius:6px;border:1px solid rgba(212,160,23,.4);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">+3</button>
+        </div>
+      </div>
+    `).join("");
+    adminUserList.querySelectorAll("[data-grant]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const lineUserId = btn.dataset.grant;
+        const amount = Number(btn.dataset.amount);
+        btn.disabled = true;
+        try{
+          const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/grant-chance`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: adminPassword, lineUserId, amount }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "發放失敗");
+          const user = adminUsers.find(u=>u.lineUserId===lineUserId);
+          if (user) user.chances = data.chances;
+          const label = adminUserList.querySelector(`[data-chances="${lineUserId}"]`);
+          if (label) label.textContent = data.chances;
+        } catch(err){
+          console.error(err);
+          alert("發放失敗：" + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  adminSearchInput.addEventListener("input", ()=> renderAdminUserList(adminSearchInput.value));
+
+  adminLoginSubmit.addEventListener("click", async ()=>{
+    const password = adminPasswordInput.value.trim();
+    if (!password){ adminLoginError.textContent = "請輸入密碼"; return; }
+    adminLoginSubmit.disabled = true;
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/list-users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "登入失敗");
+      adminPassword = password;
+      adminUsers = data;
+      adminLoginView.style.display = "none";
+      adminPanelView.style.display = "";
+      adminSearchInput.value = "";
+      renderAdminUserList("");
+      loadHolidays();
+      loadRewardsConfigForAdmin();
+    } catch(err){
+      adminLoginError.textContent = err.message || "登入失敗";
+    } finally {
+      adminLoginSubmit.disabled = false;
+    }
+  });
+
+  /* 後台分頁切換 */
+  document.querySelectorAll(".admin-tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".admin-tab-panel").forEach(p=> p.style.display = "none");
+      document.querySelectorAll(".admin-tab-btn").forEach(b=> b.style.background = "#fff9f0");
+      document.getElementById(`adminTab${btn.dataset.tab.charAt(0).toUpperCase()}${btn.dataset.tab.slice(1)}`).style.display = "";
+      btn.style.background = "#f0dcae";
+    });
+  });
+
+  /* 全員發放 */
+  const broadcastAmountInput = document.getElementById("broadcastAmountInput");
+  const broadcastSubmit = document.getElementById("broadcastSubmit");
+  const broadcastResult = document.getElementById("broadcastResult");
+  broadcastSubmit.addEventListener("click", async ()=>{
+    const amount = Number(broadcastAmountInput.value);
+    if (!amount || amount <= 0){ broadcastResult.textContent = "請輸入正確的次數"; return; }
+    if (!confirm(`確定要發放 ${amount} 次機會給所有已綁定的顧客嗎？`)) return;
+    broadcastSubmit.disabled = true;
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/grant-chance-all`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword, amount }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "發放失敗");
+      broadcastResult.textContent = `已發放給 ${data.affected} 位顧客`;
+    } catch(err){
+      broadcastResult.textContent = "發放失敗：" + err.message;
+    } finally {
+      broadcastSubmit.disabled = false;
+    }
+  });
+
+  /* 特殊節日設定 */
+  const holidayList = document.getElementById("holidayList");
+  const holidayMonthInput = document.getElementById("holidayMonthInput");
+  const holidayDayInput = document.getElementById("holidayDayInput");
+  const holidayBonusInput = document.getElementById("holidayBonusInput");
+  const holidayLabelInput = document.getElementById("holidayLabelInput");
+  const holidayAddSubmit = document.getElementById("holidayAddSubmit");
+
+  function renderHolidayList(list){
+    if (!list.length){
+      holidayList.innerHTML = `<p style="color:#a98254;font-size:12px;text-align:center;">尚未設定特殊節日</p>`;
+      return;
+    }
+    holidayList.innerHTML = list.map(h => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#fff;border:1px solid rgba(212,160,23,.2);border-radius:8px;">
+        <div style="font-size:12.5px;color:#5d4037;">${h.monthDay.replace("-","/")}　${h.label}（+${h.bonus}）</div>
+        <button data-del="${h.id}" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(162,41,34,.3);background:#fff0ee;color:#a22922;font-size:11px;cursor:pointer;">刪除</button>
+      </div>
+    `).join("");
+    holidayList.querySelectorAll("[data-del]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        if (!confirm("確定要刪除這個節日設定嗎？")) return;
+        try{
+          const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/delete-holiday`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: adminPassword, id: btn.dataset.del }),
+          });
+          if (!res.ok) throw new Error((await res.json()).error || "刪除失敗");
+          loadHolidays();
+        } catch(err){
+          alert("刪除失敗：" + err.message);
+        }
+      });
+    });
+  }
+
+  async function loadHolidays(){
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/list-holidays`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      const data = await res.json();
+      renderHolidayList(data);
+    } catch(err){
+      console.error("讀取節日設定失敗", err);
+    }
+  }
+
+  holidayAddSubmit.addEventListener("click", async ()=>{
+    const m = Number(holidayMonthInput.value), d = Number(holidayDayInput.value);
+    const bonus = Number(holidayBonusInput.value) || 1;
+    const label = holidayLabelInput.value.trim();
+    if (!m || !d || m<1 || m>12 || d<1 || d>31){ alert("請輸入正確的月/日"); return; }
+    if (!label){ alert("請輸入節日名稱"); return; }
+    const monthDay = `${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    holidayAddSubmit.disabled = true;
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/add-holiday`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword, monthDay, label, bonus }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "新增失敗");
+      holidayMonthInput.value = ""; holidayDayInput.value = ""; holidayBonusInput.value = "1"; holidayLabelInput.value = "";
+      loadHolidays();
+    } catch(err){
+      alert("新增失敗：" + err.message);
+    } finally {
+      holidayAddSubmit.disabled = false;
+    }
+  });
+
+  /* 獎項設定（後台可編輯，改完立刻對所有顧客生效，不用重新上傳前端檔案） */
+  const grandTextInput = document.getElementById("grandTextInput");
+  const grandStreakInput = document.getElementById("grandStreakInput");
+  const specialTextInput = document.getElementById("specialTextInput");
+  const specialCountInput = document.getElementById("specialCountInput");
+  const consolationList = document.getElementById("consolationList");
+  const consolationAddRow = document.getElementById("consolationAddRow");
+  const rewardsConfigError = document.getElementById("rewardsConfigError");
+  const rewardsConfigSave = document.getElementById("rewardsConfigSave");
+
+  function addConsolationRow(text, weight){
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:6px;align-items:center;";
+    row.innerHTML = `
+      <input type="text" class="cons-text" value="${(text||"").replace(/"/g,"&quot;")}" placeholder="獎項內容" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:12.5px;box-sizing:border-box;">
+      <input type="number" class="cons-weight" value="${weight??15}" min="1" style="width:56px;padding:7px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:12.5px;text-align:center;">
+      <button class="cons-del" style="padding:6px 8px;border-radius:6px;border:1px solid rgba(162,41,34,.3);background:#fff0ee;color:#a22922;font-size:11px;cursor:pointer;">✕</button>
+    `;
+    row.querySelector(".cons-del").addEventListener("click", ()=> row.remove());
+    consolationList.appendChild(row);
+  }
+
+  consolationAddRow.addEventListener("click", ()=> addConsolationRow("", 15));
+
+  async function loadRewardsConfigForAdmin(){
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/rewards-config`);
+      const cfg = await res.json();
+      grandTextInput.value = cfg.grand.text;
+      grandStreakInput.value = cfg.grand.streak;
+      specialTextInput.value = cfg.special.text;
+      specialCountInput.value = cfg.special.count;
+      consolationList.innerHTML = "";
+      cfg.consolation.forEach(c => addConsolationRow(c.text, c.weight));
+    } catch(err){
+      console.error("讀取獎項設定失敗", err);
+    }
+  }
+
+  rewardsConfigSave.addEventListener("click", async ()=>{
+    rewardsConfigError.textContent = "";
+    const grandText = grandTextInput.value.trim();
+    const grandStreak = Math.min(3, Math.max(1, Number(grandStreakInput.value) || 3));
+    const specialText = specialTextInput.value.trim();
+    const specialCount = Math.min(3, Math.max(1, Number(specialCountInput.value) || 3));
+    if (!grandText || !specialText){ rewardsConfigError.textContent = "大獎、特別獎內容不能空白"; return; }
+    const consolation = Array.from(consolationList.children).map(row => ({
+      text: row.querySelector(".cons-text").value.trim(),
+      weight: Number(row.querySelector(".cons-weight").value),
+    })).filter(c => c.text && c.weight > 0);
+    if (!consolation.length){ rewardsConfigError.textContent = "安慰獎至少要有一項"; return; }
+
+    rewardsConfigSave.disabled = true;
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/update-rewards-config`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: adminPassword,
+          config: {
+            grand: { text: grandText, streak: grandStreak },
+            special: { text: specialText, count: specialCount },
+            consolation,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "儲存失敗");
+      rewardsConfig = data.config;
+      rewardsConfigError.style.color = "#3a7d3a";
+      rewardsConfigError.textContent = "已儲存，立即生效";
+      setTimeout(()=>{ rewardsConfigError.textContent = ""; rewardsConfigError.style.color = "#a22922"; }, 2500);
+    } catch(err){
+      rewardsConfigError.textContent = err.message || "儲存失敗";
+    } finally {
+      rewardsConfigSave.disabled = false;
+    }
+  });
 
   /* 店員兌換密碼確認 */
   let pocketRecords = [];
@@ -1272,6 +1651,8 @@
         showLineToast(`歡迎加入！首次綁定贈送 ${myChances} 次遊戲機會`, 4000);
       } else if (data.birthdayBonusGranted){
         showLineToast("生日快樂！加贈 1 次遊戲機會 🎂", 4000);
+      } else if (data.holidayBonusGranted && data.holidayBonusGranted.length){
+        showLineToast(`${data.holidayBonusGranted.join("、")}加贈遊戲機會 🎉`, 4000);
       } else {
         showLineToast(`已綁定 LINE 帳號：${lineProfile.displayName}`);
       }
@@ -1386,6 +1767,10 @@
   showRestingCups();
   animate();
   initLineLogin();
+  fetch(`${LINE_CONFIG.backendBaseUrl}/api/rewards-config`)
+    .then(res => res.ok ? res.json() : null)
+    .then(cfg => { if (cfg) rewardsConfig = cfg; })
+    .catch(err => console.warn("讀取獎項設定失敗，使用預設值", err));
   document.getElementById("loading").style.display = "none";
 
 })();
