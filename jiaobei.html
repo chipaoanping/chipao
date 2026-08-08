@@ -1130,7 +1130,7 @@
         }
         myChances = data.chances;
         lineProfile.chances = myChances;
-        sessionStorage.setItem("line_profile", JSON.stringify(lineProfile));
+        localStorage.setItem("line_profile", JSON.stringify(lineProfile));
       } catch(err){
         console.error("扣除遊戲機會失敗", err);
         throwBtn.disabled = false;
@@ -1660,7 +1660,7 @@
         chances: data.chances, hasBirthday: data.hasBirthday,
       };
       myChances = data.chances;
-      sessionStorage.setItem("line_profile", JSON.stringify(lineProfile));
+      localStorage.setItem("line_profile", JSON.stringify(lineProfile));
       renderLineButton();
       refreshPlayGateUI();
 
@@ -1696,7 +1696,7 @@
   }
 
   function initLineLogin(){
-    const saved = sessionStorage.getItem("line_profile");
+    const saved = localStorage.getItem("line_profile");
     if (saved){
       lineProfile = JSON.parse(saved);
       myChances = lineProfile.chances || 0;
@@ -1764,7 +1764,7 @@
       lineProfile.hasBirthday = true;
       myChances = data.chances;
       lineProfile.chances = myChances;
-      sessionStorage.setItem("line_profile", JSON.stringify(lineProfile));
+      localStorage.setItem("line_profile", JSON.stringify(lineProfile));
       birthdayOverlay.classList.remove("open");
       refreshPlayGateUI();
       showLineToast(data.birthdayBonusGranted ? "生日快樂！加贈 1 次遊戲機會 🎂" : "生日已儲存，明年生日當天登入就能拿機會");
