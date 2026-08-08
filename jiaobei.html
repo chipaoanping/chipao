@@ -818,7 +818,7 @@
   // 用鏡頭偏移（不是移動攝影機或杯子座標）把整個畫面內容往上推，
   // 讓主要畫面落在畫面偏上方，而不是貼近底部。VERTICAL_SHIFT_RATIO
   // 越大，畫面內容往上移動越多，需要的話可以直接調這個數字微調。
-  const VERTICAL_SHIFT_RATIO = 0.32;
+  const VERTICAL_SHIFT_RATIO = 0.58;
   function applyCameraShift(){
     const { w, h } = getAppSize();
     const extra = h * VERTICAL_SHIFT_RATIO;
