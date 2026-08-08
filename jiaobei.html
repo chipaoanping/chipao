@@ -907,17 +907,17 @@
     for (let i=0;i<2;i++){
       const mesh = createJiaoCupMesh();
       const body = makeCupBody();
-      const xOffset = i===0 ? -0.06 : 0.06;
+      const xOffset = i===0 ? -0.045 : 0.045;
       const zOffset = 0.04 + Math.random()*0.02;
       body.pos.set(xOffset, 0.06+Math.random()*0.02, zOffset);
 
       const speed = 2.0 + Math.random()*0.8;
       const angle = (62+Math.random()*12)*(Math.PI/180);
-      const hAngle = (Math.random()-0.5)*Math.PI*0.4;
+      const hAngle = (Math.random()-0.5)*Math.PI*0.22;
       const vx = Math.cos(angle)*speed*Math.sin(hAngle)*0.1;
       const vy = Math.sin(angle)*speed*0.85;
       const vz = -Math.cos(angle)*speed*Math.cos(hAngle)*0.1;
-      const spreadVx = (i===0?-1:1)*(0.1+Math.random()*0.06);
+      const spreadVx = (i===0?-1:1)*(0.04+Math.random()*0.04);
       body.vel.set(vx+spreadVx, vy, vz);
 
       const angSpeed = 5+Math.random()*7;
