@@ -1702,6 +1702,19 @@
       myChances = lineProfile.chances || 0;
       renderLineButton();
       refreshPlayGateUI();
+      // 本機記住的機會次數可能是舊的（例如店家在後台手動加贈過），
+      // 每次開頁面都主動跟伺服器要一次最新數字，不要只信任快取。
+      fetch(`${LINE_CONFIG.backendBaseUrl}/api/chances/${lineProfile.userId}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (!data) return;
+          myChances = data.chances;
+          lineProfile.chances = data.chances;
+          lineProfile.hasBirthday = data.hasBirthday;
+          localStorage.setItem("line_profile", JSON.stringify(lineProfile));
+          refreshPlayGateUI();
+        })
+        .catch(err => console.warn("同步機會次數失敗，先用本機快取的數字", err));
     }
 
     const params = new URLSearchParams(window.location.search);
