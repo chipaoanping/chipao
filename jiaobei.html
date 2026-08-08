@@ -1275,9 +1275,14 @@
     }
     adminUserList.innerHTML = filtered.map(u => `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#fff;border:1px solid rgba(212,160,23,.2);border-radius:8px;">
-        <div style="min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:#5d4037;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.displayName || "(未命名)"}</div>
-          <div style="font-size:11px;color:#a98254;">目前機會：<span data-chances="${u.lineUserId}">${u.chances}</span></div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          ${u.pictureUrl
+            ? `<img src="${u.pictureUrl}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex:0 0 auto;">`
+            : `<div style="width:32px;height:32px;border-radius:50%;background:#f0dcae;color:#8a5a2b;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;">👤</div>`}
+          <div style="min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:#5d4037;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.displayName || "(未命名)"}</div>
+            <div style="font-size:11px;color:#a98254;">目前機會：<span data-chances="${u.lineUserId}">${u.chances}</span></div>
+          </div>
         </div>
         <div style="display:flex;gap:4px;flex:0 0 auto;">
           <button data-grant="${u.lineUserId}" data-amount="1" style="padding:6px 10px;border-radius:6px;border:1px solid rgba(212,160,23,.4);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">+1</button>
