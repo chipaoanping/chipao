@@ -315,12 +315,18 @@
           <button class="admin-tab-btn" data-tab="users" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">顧客列表</button>
           <button class="admin-tab-btn" data-tab="broadcast" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">全員發放</button>
           <button class="admin-tab-btn" data-tab="holidays" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">特殊節日</button>
+          <button class="admin-tab-btn" data-tab="prizes" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">中獎紀錄</button>
           <button class="admin-tab-btn" data-tab="rewards" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid rgba(212,160,23,.35);background:#fff9f0;color:#8a5a2b;font-size:12px;cursor:pointer;">獎項設定</button>
         </div>
 
         <div id="adminTabUsers" class="admin-tab-panel">
           <input id="adminSearchInput" type="text" placeholder="搜尋顧客名稱" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(212,160,23,.3);font-size:14px;margin-bottom:10px;box-sizing:border-box;">
           <div id="adminUserList" style="text-align:left;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:6px;"></div>
+        </div>
+
+        <div id="adminTabPrizes" class="admin-tab-panel" style="display:none;">
+          <label style="font-size:12px;color:#8a5a2b;display:block;margin-bottom:8px;"><input type="checkbox" id="prizeOnlyUnredeemed"> 只看未兌換</label>
+          <div id="prizeList" style="text-align:left;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:6px;"></div>
         </div>
 
         <div id="adminTabBroadcast" class="admin-tab-panel" style="display:none;">
@@ -405,6 +411,36 @@
    * ========================================================== */
   const LEN = 0.1, WID = 0.04, THK = 0.024;
   const VISUAL = { convexColor: 0x8b1a1a, flatColor: 0x6b4423 };
+  const CUP_CHARS = ["旗", "跑"]; // 左杯刻「旗」，右杯刻「跑」
+
+  // 把一個字畫到小網格上，回傳可以用 (u,v) 查詢的覆蓋度陣列（0~1），
+  // 用來在杯子凸面上「刻」出這個字（用顏色深淺模擬雕刻痕跡，不是真的texture貼圖，
+  // 這樣才能貼合這個高度自訂變形過的杯子幾何，不會跑位或被拉伸走樣）。
+  const charAlphaCache = {};
+  function getCharAlphaGrid(char, gridSize){
+    const key = char + "_" + gridSize;
+    if (charAlphaCache[key]) return charAlphaCache[key];
+    const cv = document.createElement("canvas");
+    cv.width = gridSize; cv.height = gridSize;
+    const ctx = cv.getContext("2d");
+    ctx.clearRect(0,0,gridSize,gridSize);
+    ctx.fillStyle = "#fff";
+    ctx.font = `bold ${Math.floor(gridSize*0.7)}px "Noto Serif TC","PMingLiU",serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(char, gridSize/2, gridSize/2 + gridSize*0.03);
+    const data = ctx.getImageData(0,0,gridSize,gridSize).data;
+    const grid = new Float32Array(gridSize*gridSize);
+    for (let i=0;i<gridSize*gridSize;i++) grid[i] = data[i*4+3]/255; // alpha 覆蓋度
+    charAlphaCache[key] = { grid, size: gridSize };
+    return charAlphaCache[key];
+  }
+  function sampleCharAlpha(charGrid, u, v){
+    const s = charGrid.size;
+    const gx = Math.max(0, Math.min(s-1, Math.floor(u*s)));
+    const gy = Math.max(0, Math.min(s-1, Math.floor((1-v)*s)));
+    return charGrid.grid[gy*s+gx];
+  }
 
   let softShadowTexture = null;
   function getSoftShadowTexture(){
@@ -458,10 +494,12 @@
     return tex;
   }
 
-  function createJiaoCupMesh(){
+  function createJiaoCupMesh(char){
     const group = new THREE.Group();
     const geometry = new THREE.SphereGeometry(0.5, 48, 48);
     const pos = geometry.attributes.position;
+    const carveU = new Float32Array(pos.count);
+    const carveV = new Float32Array(pos.count);
 
     for (let i=0;i<pos.count;i++){
       const sx = pos.getX(i)*2, sy = pos.getY(i)*2, sz = pos.getZ(i)*2;
@@ -484,6 +522,9 @@
         yMapped = sy*THK*(0.25+0.75*Math.pow(widthRatio,0.8))*domeAcross;
       }
       pos.setXYZ(i, t*(LEN/2), yMapped, zMapped - WID*0.5);
+      // 記錄這個頂點在「字」座標系裡的位置：沿長軸 t 當作 u，沿寬度 (sz+1)/2 當作 v
+      carveU[i] = (t+1)/2;
+      carveV[i] = (sz+1)/2;
     }
 
     geometry.translate(0, -THK/4, 0);
@@ -493,11 +534,22 @@
     const normals = geometry.attributes.normal;
     const fr=((VISUAL.flatColor>>16)&255)/255, fg=((VISUAL.flatColor>>8)&255)/255, fb=(VISUAL.flatColor&255)/255;
     const cr=((VISUAL.convexColor>>16)&255)/255, cg=((VISUAL.convexColor>>8)&255)/255, cb=(VISUAL.convexColor&255)/255;
+    const charGrid = char ? getCharAlphaGrid(char, 64) : null;
     for (let i=0;i<pos.count;i++){
       const ny = normals.getY(i), py = pos.getY(i);
-      if (py < -0.001){ colors.push(fr,fg,fb); }
-      else if (ny > 0.1){ colors.push(cr,cg,cb); }
-      else { const m=0.4; colors.push(fr*m+cr*(1-m), fg*m+cg*(1-m), fb*m+cb*(1-m)); }
+      let r, g, b;
+      if (py < -0.001){ r=fr; g=fg; b=fb; }
+      else if (ny > 0.1){ r=cr; g=cg; b=cb; }
+      else { const m=0.4; r=fr*m+cr*(1-m); g=fg*m+cg*(1-m); b=fb*m+cb*(1-m); }
+      // 只在凸面（弧面朝上那一面）刻字，模擬雕刻凹痕：字的地方顏色壓深
+      if (charGrid && ny > 0.5){
+        const a = sampleCharAlpha(charGrid, carveU[i], carveV[i]);
+        if (a > 0.15){
+          const dark = 0.42;
+          r = r*(1-dark*a); g = g*(1-dark*a); b = b*(1-dark*a);
+        }
+      }
+      colors.push(r,g,b);
     }
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors,3));
 
@@ -880,7 +932,7 @@
       { x: 0.032, z:0.03, yaw:-(Math.PI/2 + 0.15) }, // 右杯：鏡射對稱，面朝左，弧面朝外
     ];
     for (let i=0;i<2;i++){
-      const mesh = createJiaoCupMesh();
+      const mesh = createJiaoCupMesh(CUP_CHARS[i]);
       const body = makeCupBody();
       const L = layout[i];
       body.quat.setFromAxisAngle(new THREE.Vector3(0,1,0), L.yaw);
@@ -905,7 +957,7 @@
     setResultBanner("", "", false);
 
     for (let i=0;i<2;i++){
-      const mesh = createJiaoCupMesh();
+      const mesh = createJiaoCupMesh(CUP_CHARS[i]);
       const body = makeCupBody();
       const xOffset = i===0 ? -0.045 : 0.045;
       const zOffset = 0.04 + Math.random()*0.02;
@@ -1351,12 +1403,44 @@
       renderAdminUserList("");
       loadHolidays();
       loadRewardsConfigForAdmin();
+      loadPrizes();
     } catch(err){
       adminLoginError.textContent = err.message || "登入失敗";
     } finally {
       adminLoginSubmit.disabled = false;
     }
   });
+
+  /* 中獎紀錄 */
+  const prizeList = document.getElementById("prizeList");
+  const prizeOnlyUnredeemed = document.getElementById("prizeOnlyUnredeemed");
+  let adminPrizes = [];
+  function escHtml(t){ return String(t==null?"":t).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function renderPrizes(){
+    const list = adminPrizes.filter(r=> !prizeOnlyUnredeemed.checked || !r.redeemed);
+    if (!list.length){
+      prizeList.innerHTML = `<p style="color:#a98254;font-size:12px;text-align:center;">目前沒有紀錄</p>`;
+      return;
+    }
+    prizeList.innerHTML = list.map(r=>{
+      const t = new Date(r.createdAt).toLocaleString("zh-TW", { timeZone:"Asia/Taipei", hour12:false });
+      const pic = r.pictureUrl ? `<img src="${escHtml(r.pictureUrl)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:#eadcc3;"></div>`;
+      const st = r.redeemed ? `<span style="color:#7a9a6a;">已兌換</span>` : `<span style="color:#c0392b;">未兌換</span>`;
+      return `<div style="display:flex;gap:8px;align-items:center;padding:8px;border:1px solid rgba(212,160,23,.25);border-radius:8px;background:#fffdf8;">
+        ${pic}<div style="flex:1;min-width:0;font-size:12px;color:#5a3a1a;"><div style="font-weight:600;">${escHtml(r.displayName||"(未命名)")}　${st}</div><div>${escHtml(r.reward)}</div><div style="color:#a98254;font-size:11px;">${t}</div></div></div>`;
+    }).join("");
+  }
+  prizeOnlyUnredeemed.addEventListener("change", renderPrizes);
+  async function loadPrizes(){
+    try{
+      const res = await fetch(`${LINE_CONFIG.backendBaseUrl}/api/admin/list-rewards`, {
+        method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ password: adminPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "讀取失敗");
+      adminPrizes = data; renderPrizes();
+    } catch(err){ prizeList.innerHTML = `<p style="color:#c0392b;font-size:12px;">讀取失敗：${escHtml(err.message)}</p>`; }
+  }
 
   /* 後台分頁切換 */
   document.querySelectorAll(".admin-tab-btn").forEach(btn=>{
@@ -1365,6 +1449,7 @@
       document.querySelectorAll(".admin-tab-btn").forEach(b=> b.style.background = "#fff9f0");
       document.getElementById(`adminTab${btn.dataset.tab.charAt(0).toUpperCase()}${btn.dataset.tab.slice(1)}`).style.display = "";
       btn.style.background = "#f0dcae";
+      if (btn.dataset.tab === "prizes") loadPrizes();
     });
   });
 
