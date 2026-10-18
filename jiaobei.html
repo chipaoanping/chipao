@@ -953,9 +953,14 @@
 
   // 單次擲出「聖筊」的機率（一正一反）。其餘平分給笑筊（兩杯都弧面朝上）與陰筊（兩杯都平面朝上）。
   const SHENG_PROB = 0.45;
+  // 已連續聖筊到「大獎前一次」時，這一次的聖筊機率改用較低的值，
+  // 讓「連續三次聖筊」整體剛好 10%（0.45 × 0.45 × 0.494）。
+  const FINAL_SHENG_PROB = 0.1/(0.45*0.45); // ≈ 0.494
   function rollOutcome(){
+    const needForGrand = rewardsConfig.grand.streak;
+    const p = (shengCount === needForGrand - 1) ? FINAL_SHENG_PROB : SHENG_PROB;
     const r = Math.random();
-    if (r < SHENG_PROB){
+    if (r < p){
       const first = Math.random() < 0.5;
       return [first, !first];
     }
