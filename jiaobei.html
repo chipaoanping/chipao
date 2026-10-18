@@ -411,7 +411,7 @@
    * ========================================================== */
   const LEN = 0.1, WID = 0.04, THK = 0.024;
   const VISUAL = { convexColor: 0x8b1a1a, flatColor: 0x6b4423 };
-  const CUP_CHARS = ["旗", "跑"]; // 左杯刻「旗」，右杯刻「跑」
+  const CUP_CHARS = [null, null]; // 不刻字（要刻字可改回 ["旗","跑"]）
 
   // 把一個字畫到小網格上，回傳可以用 (u,v) 查詢的覆蓋度陣列（0~1），
   // 用來在杯子凸面上「刻」出這個字（用顏色深淺模擬雕刻痕跡，不是真的texture貼圖，
@@ -628,7 +628,9 @@
   // 貼齊地面後直接凍結（速度歸零、不再更新），達成「落地後馬上停止」。
   function snapToRest(body){
     const worldY = new THREE.Vector3(0,1,0).applyQuaternion(body.quat);
-    const target = worldY.y >= 0 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(0,-1,0);
+    // 若這次投擲已預先決定結果（body.targetConvexUp），落地時吸附到指定朝向；否則就近吸附
+    const wantUp = (typeof body.targetConvexUp === "boolean") ? body.targetConvexUp : (worldY.y >= 0);
+    const target = wantUp ? new THREE.Vector3(0,1,0) : new THREE.Vector3(0,-1,0);
     const correction = new THREE.Quaternion().setFromUnitVectors(worldY.normalize(), target);
     body.quat.premultiply(correction);
     body.quat.normalize();
@@ -949,6 +951,18 @@
     }
   }
 
+  // 單次擲出「聖筊」的機率（一正一反）。其餘平分給笑筊（兩杯都弧面朝上）與陰筊（兩杯都平面朝上）。
+  const SHENG_PROB = 0.45;
+  function rollOutcome(){
+    const r = Math.random();
+    if (r < SHENG_PROB){
+      const first = Math.random() < 0.5;
+      return [first, !first];
+    }
+    const both = Math.random() < 0.5; // 笑筊 / 陰筊
+    return [both, both];
+  }
+
   function throwCups(){
     if (isThrowing) return;
     isThrowing = true;
@@ -956,9 +970,11 @@
     clearCups();
     setResultBanner("", "", false);
 
+    const outcome = rollOutcome();
     for (let i=0;i<2;i++){
       const mesh = createJiaoCupMesh(CUP_CHARS[i]);
       const body = makeCupBody();
+      body.targetConvexUp = outcome[i];
       const xOffset = i===0 ? -0.045 : 0.045;
       const zOffset = 0.04 + Math.random()*0.02;
       body.pos.set(xOffset, 0.06+Math.random()*0.02, zOffset);
