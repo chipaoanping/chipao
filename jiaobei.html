@@ -1738,10 +1738,24 @@
     }
   }
 
+  function logoutLine(){
+    try{ localStorage.removeItem("line_profile"); }catch(e){}
+    try{ localStorage.removeItem("line_login_state"); }catch(e){}
+    try{ sessionStorage.removeItem("line_login_state"); }catch(e){}
+    lineProfile = null;
+    myChances = 0;
+    resetGame();
+    renderLineButton();
+    showLineToast("已登出");
+  }
+
   function startLineLogin(){
     const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
     const nonce = Math.random().toString(36).slice(2);
-    sessionStorage.setItem("line_login_state", state);
+    // 同時存 sessionStorage 與 localStorage：從 LINE App 跳回來時常是新分頁，
+    // sessionStorage 會是空的，localStorage 同網域可跨分頁讀到。
+    try{ sessionStorage.setItem("line_login_state", state); }catch(e){}
+    try{ localStorage.setItem("line_login_state", state); }catch(e){}
     const url = new URL("https://access.line.me/oauth2/v2.1/authorize");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("client_id", LINE_CONFIG.channelId);
@@ -1827,10 +1841,17 @@
     const code = params.get("code");
     const state = params.get("state");
     if (code && state){
-      const expected = sessionStorage.getItem("line_login_state");
+      let expectedS = null, expectedL = null;
+      try{ expectedS = sessionStorage.getItem("line_login_state"); }catch(e){}
+      try{ expectedL = localStorage.getItem("line_login_state"); }catch(e){}
+      try{ localStorage.removeItem("line_login_state"); }catch(e){}
+      // 有存到 state 就必須相符；兩邊都讀不到（被內建瀏覽器或隱私設定清掉）時，
+      // 仍放行，避免顧客被卡在登入失敗。
+      const hasStored = !!(expectedS || expectedL);
+      const expected = (state === expectedS || state === expectedL) ? state : null;
       // 清掉網址列上的 code/state，避免重新整理時重複觸發或外洩
       window.history.replaceState({}, "", window.location.pathname);
-      if (state === expected){
+      if (expected === state || !hasStored){
         completeLineLogin(code);
       } else {
         showLineToast("登入驗證失敗，請重新登入一次");
@@ -1840,7 +1861,10 @@
 
   lineLoginBtn.addEventListener("click", ()=>{
     if (lineProfile){
-      showLineToast(`目前已綁定：${lineProfile.displayName}`);
+      // 已登入時點按鈕：詢問是否登出（登出只清除這支手機上的登入狀態，不會刪除帳號或機會）
+      if (confirm(`目前登入：${lineProfile.displayName}\n\n要登出 LINE 帳號嗎？`)){
+        logoutLine();
+      }
       return;
     }
     startLineLogin();
